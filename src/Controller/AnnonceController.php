@@ -11,12 +11,13 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
 
 #[Route('/annonce')]
 final class AnnonceController extends AbstractController
 {
     #[Route(name: 'annonce_index', methods: ['GET'])]
-    public function index(AnnonceRepository $annonceRepository): Response
+    public function index(Request $request, AnnonceRepository $annonceRepository, PaginatorInterface $paginator): Response
     {
         $query = $annonceRepository->findAll(); 
         $annonces = $paginator->paginate(
@@ -31,22 +32,39 @@ final class AnnonceController extends AbstractController
     }
 
     #[Route('/new', name: 'annonce_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger): Response
     {
         $annonce = new Annonce();
         $form = $this->createForm(AnnonceType::class, $annonce);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Gérer l'upload de l'image
+            $photoFile = $form->get('photo')->getData();
+            if ($photoFile) {
+                $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename.'-'.uniqid().'.'.$photoFile->guessExtension();
+
+                try {
+                    $photoFile->move(
+                        $this->getParameter('uploads_directory'),
+                        $newFilename
+                    );
+                    $annonce->setPhoto($newFilename);
+                } catch (FileException $e) {
+                    $this->addFlash('danger', 'Erreur lors de l\'upload du fichier.');
+                }
+            }
             $entityManager->persist($annonce);
             $entityManager->flush();
 
-            return $this->redirectToRoute('annonce_index', [], Response::HTTP_SEE_OTHER);
+            // return $this->redirectToRoute('annonce_index', [], Response::HTTP_SEE_OTHER);
+            return $this->redirectToRoute('annonce_index');
         }
 
         return $this->render('annonce/new.html.twig', [
-            'annonce' => $annonce,
-            'form' => $form,
+            'form' => $form->createView(),
         ]);
     }
 

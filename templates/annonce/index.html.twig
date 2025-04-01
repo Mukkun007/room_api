@@ -34,7 +34,13 @@
                 <td>{{ annonce.surface }}</td>
                 <td>{{ annonce.ville }}</td>
                 <td>{{ annonce.codePostal }}</td>
-                <td>{{ annonce.photo }}</td>
+                <td>
+                    {% if annonce.photo %}
+                        <img src="{{ asset('uploads/photos/' ~ annonce.photo) }}" alt="Photo" width="100">
+                    {% else %}
+                        Pas d'image
+                    {% endif %}
+                </td>
                 <td>{{ annonce.createdAt ? annonce.createdAt|date('Y-m-d H:i:s') : '' }}</td>
                 <td>
                     <a href="{{ path('annonce_show', {'id': annonce.id}) }}">show</a>
@@ -43,11 +49,13 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="12">no records found</td>
+                <td colspan="12">No records found</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+
+    {{ knp_pagination_render(annonces) }}
 
     <a href="{{ path('annonce_new') }}">Create new</a>
 {% endblock %}

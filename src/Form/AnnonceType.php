@@ -6,6 +6,8 @@ use App\Entity\Annonce;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 
 class AnnonceType extends AbstractType
 {
@@ -22,7 +24,18 @@ class AnnonceType extends AbstractType
             ->add('surface')
             ->add('ville')
             ->add('codePostal')
-            ->add('photo')
+            ->add('photo', FileType::class, [
+                'label' => 'Photo (JPG, PNG, Max: 2MB)',
+                'mapped' => false, // Ne lie pas directement à l'entité
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2M',
+                        'mimeTypes' => ['image/jpeg', 'image/png'],
+                        'mimeTypesMessage' => 'Veuillez uploader une image valide (JPG, PNG)',
+                    ])
+                ],
+            ])
             ->add('createdAt', null, [
                 'widget' => 'single_text',
             ])
