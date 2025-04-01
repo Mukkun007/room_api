@@ -41,7 +41,7 @@
                         Pas d'image
                     {% endif %}
                 </td>
-                <td>{{ annonce.createdAt ? annonce.createdAt|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ annonce.createdAt ? annonce.createdAt|date('Y-m-d') : '' }}</td>
                 <td>
                     <a href="{{ path('annonce_show', {'id': annonce.id}) }}">show</a>
                     <a href="{{ path('annonce_edit', {'id': annonce.id}) }}">edit</a>

@@ -8,6 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 
 class AnnonceType extends AbstractType
 {
@@ -18,8 +19,9 @@ class AnnonceType extends AbstractType
             ->add('description')
             ->add('prix')
             ->add('type')
-            ->add('datePublication', null, [
+            ->add('datePublication', DateType::class, [
                 'widget' => 'single_text',
+                'format' => 'yyyy-MM-dd', // ✅ Affiche uniquement la date sans l'heure
             ])
             ->add('surface')
             ->add('ville')
@@ -36,9 +38,9 @@ class AnnonceType extends AbstractType
                     ])
                 ],
             ])
-            ->add('createdAt', null, [
-                'widget' => 'single_text',
-            ])
+            // ->add('createdAt', null, [
+            //     'widget' => 'single_text',
+            // ])
         ;
     }
 

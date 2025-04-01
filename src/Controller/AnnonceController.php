@@ -56,6 +56,7 @@ final class AnnonceController extends AbstractController
                     $this->addFlash('danger', 'Erreur lors de l\'upload du fichier.');
                 }
             }
+            $annonce->setCreatedAt(new \DateTime());
             $entityManager->persist($annonce);
             $entityManager->flush();
 
