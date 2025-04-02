@@ -1,0 +1,22 @@
+# React
+/node_modules/
+build/
+dist/
+
+# Vite
+.vite/
+.vscode/
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Tailwind CSS
+/.tailwind/
