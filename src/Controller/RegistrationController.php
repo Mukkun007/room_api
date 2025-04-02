@@ -3,43 +3,48 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\RegistrationType;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class RegistrationController extends AbstractController
+#[Route('/api', name: 'api_')]
+class RegistrationController
 {
-    #[Route('/register', name: 'app_register')]
-    public function register(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): Response
-    {
-        $user = new User();
-        $form = $this->createForm(RegistrationType::class, $user);
+    #[Route('/register', name: 'register', methods: ['POST'])]
+    public function register(
+        Request $request, 
+        EntityManagerInterface $entityManager, 
+        UserPasswordHasherInterface $passwordHasher
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            // Hasher le mot de passe
-            $hashedPassword = $passwordHasher->hashPassword($user, $form->get('plainPassword')->getData());
-            $user->setPassword($hashedPassword);
-
-            // Définir un rôle par défaut si l'utilisateur n'a pas sélectionné de rôle
-            if (!$user->getRoles()) {
-                $user->setRoles(['ROLE_VISITEUR']);
-            }
-
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Inscription réussie ! Vous pouvez maintenant vous connecter.');
-
-            return $this->redirectToRoute('app_login');
+        // Vérification des champs obligatoires
+        if (!isset($data['email']) || !isset($data['password']) || !isset($data['nom'])) {
+            return new JsonResponse(['error' => 'Nom, email et mot de passe sont requis'], 400);
         }
 
-        return $this->render('registration/register.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        // Création de l'utilisateur
+        $user = new User();
+        $user->setNom($data['nom']);
+        $user->setEmail($data['email']);
+        $hashedPassword = $passwordHasher->hashPassword($user, $data['password']);
+        $user->setPassword($hashedPassword);
+        $user->setRoles(['ROLE_USER']); // Par défaut, l'utilisateur est un simple utilisateur
+
+        // Sauvegarde en base de données
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return new JsonResponse([
+            'message' => 'Utilisateur créé avec succès',
+            'user' => [
+                'id' => $user->getId(),
+                'nom' => $user->getNom(),
+                'email' => $user->getEmail(),
+            ]
+        ], 201);
     }
 }
+
